@@ -3,6 +3,7 @@ import * as Machining from './controller/Machining'
 import * as Level from './controller/Level'
 import * as Chill from './controller/Chill'
 import * as Storage from './controller/Storage'
+import * as Packing from './controller/Packing'
 
 /**
  * All application routes.
@@ -62,5 +63,15 @@ export const AppRoutes = [
     path: '/customer',
     method: 'get',
     action: Stock.getCustomer
+  },
+  {
+    path: '/packing',
+    method: 'get',
+    action: Packing.getPackingInfo
+  },
+  {
+    path: '/packing',
+    method: 'post',
+    action: Packing.savePackingInfo
   }
 ]

@@ -2,6 +2,7 @@ import {Entity, PrimaryGeneratedColumn, Column, OneToMany} from "typeorm"
 import {StockInfo} from "./StockInfo"
 import {MachiningInfo} from './MachiningInfo'
 import {LevelInfo} from "./LevelInfo"
+import {PackingInfo} from "./PackingInfo"
 
 @Entity()
 export class CustomerInfo {
@@ -32,4 +33,9 @@ export class CustomerInfo {
     cascade: true
   })
   levels: LevelInfo[]
+  // 建立一对多关系
+  @OneToMany(type => PackingInfo, Packing => Packing.customerInfo, {
+    cascade: true
+  })
+  packings: LevelInfo[]
 }
