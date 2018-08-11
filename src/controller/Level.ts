@@ -2,7 +2,6 @@ import {Context} from "koa"
 import { getManager } from "typeorm"
 import { LevelInfo } from "../entity/LevelInfo"
 import { CustomerInfo } from "../entity/CustomerInfo"
-import { ChillInfo } from "../entity/ChillInfo"
 
 export async function getLevelInfo(ctx: Context): Promise<void> {
   const CustomerRepository = getManager().getRepository(CustomerInfo)

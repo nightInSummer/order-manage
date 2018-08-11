@@ -3,6 +3,7 @@ import {StockInfo} from "./StockInfo"
 import {MachiningInfo} from './MachiningInfo'
 import {LevelInfo} from "./LevelInfo"
 import {PackingInfo} from "./PackingInfo"
+import {WastageInfo} from "./WastageInfo"
 
 @Entity()
 export class CustomerInfo {
@@ -33,9 +34,16 @@ export class CustomerInfo {
     cascade: true
   })
   levels: LevelInfo[]
+
   // 建立一对多关系
   @OneToMany(type => PackingInfo, Packing => Packing.customerInfo, {
     cascade: true
   })
   packings: LevelInfo[]
+
+  // 建立一对多关系
+  @OneToMany(type => WastageInfo, Wastage => Wastage.customerInfo, {
+    cascade: true
+  })
+  wastages: WastageInfo[]
 }

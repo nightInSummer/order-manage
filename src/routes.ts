@@ -4,6 +4,7 @@ import * as Level from './controller/Level'
 import * as Chill from './controller/Chill'
 import * as Storage from './controller/Storage'
 import * as Packing from './controller/Packing'
+import * as Wastage from './controller/Wastage'
 
 /**
  * All application routes.
@@ -73,5 +74,15 @@ export const AppRoutes = [
     path: '/packing',
     method: 'post',
     action: Packing.savePackingInfo
+  },
+  {
+    path: '/wastage',
+    method: 'get',
+    action: Wastage.getWastageInfo
+  },
+  {
+    path: '/wastage',
+    method: 'post',
+    action: Wastage.saveWastageInfo
   }
 ]

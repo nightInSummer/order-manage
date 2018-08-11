@@ -3,6 +3,7 @@ import { getManager } from "typeorm"
 import { PackingInfo } from "../entity/PackingInfo"
 import {CustomerInfo} from "../entity/CustomerInfo"
 import {ChillInfo} from "../entity/ChillInfo"
+import * as _ from 'lodash'
 
 export async function getPackingInfo (ctx: Context): Promise<void> {
   const CustomerRepository = getManager().getRepository(CustomerInfo)
@@ -10,6 +11,7 @@ export async function getPackingInfo (ctx: Context): Promise<void> {
     .createQueryBuilder('Customer')
     .leftJoinAndSelect('Customer.packings', 'packings')
     .leftJoinAndSelect('Customer.levels', 'levels')
+    .leftJoinAndSelect('Customer.wastages', 'wastages', 'type=1')
     .getMany()
 
   ctx.body = {
@@ -27,43 +29,63 @@ export async function savePackingInfo (ctx: Context): Promise<void> {
 
 
   const packing = {}
+  try {
+    if (ctx.request.body.levelA) {
+      packing['levelA'] =  ctx.request.body.levelA || 0
+      chill['levelA'] = chill['levelA'] + Number(ctx.request.body.levelA)
+    }
+    if (ctx.request.body.levelB) {
+      packing['levelB'] =  ctx.request.body.levelB
+      chill['levelB'] =  chill['levelB'] + Number(ctx.request.body.levelB)
+    }
+    if (ctx.request.body.levelC) {
+      packing['levelC'] =  ctx.request.body.levelC
+      chill['levelC'] =  chill['levelC'] + Number(ctx.request.body.levelC)
+    }
+    if (ctx.request.body.levelD) {
+      packing['levelD'] =  ctx.request.body.levelD
+      chill['levelD'] =  chill['levelD'] + Number(ctx.request.body.levelD)
+    }
 
-  if (ctx.request.body.levelA) {
-    packing['levelA'] =  ctx.request.body.levelA
-    chill['levelA'] = chill['levelA'] + Number(ctx.request.body.levelA)
-  }
-  if (ctx.request.body.levelB) {
-    packing['levelB'] =  ctx.request.body.levelB
-    chill['levelB'] =  chill['levelB'] + Number(ctx.request.body.levelB)
-  }
-  if (ctx.request.body.levelC) {
-    packing['levelC'] =  ctx.request.body.levelC
-    chill['levelC'] =  chill['levelC'] + Number(ctx.request.body.levelC)
-  }
-  if (ctx.request.body.levelD) {
-    packing['levelD'] =  ctx.request.body.levelD
-    chill['levelD'] =  chill['levelD'] + Number(ctx.request.body.levelD)
+    if (customer) {
+      const packingArr = await CustomerRepository.find({
+        join: {
+          alias: "customer",
+          leftJoinAndSelect: {
+            packings: "customer.packings",
+            levels: "customer.levels"
+          }
+        },
+        where: { id: customer.id }
+      })
+      packing['storage'] = ctx.request.body.chillId
+      packing['truck'] = ctx.request.body.truck
+      const newPacking = PackingRepository.create([{ ...packing }])
+      customer.packings = packingArr[0].packings.concat(newPacking)
+
+      const total = _.reduce(packingArr[0].levels,(result, item) => {
+        return result + item.levelA + item.levelB + item.levelC + item.levelD
+      }, 0)
+      console.log(111, packing)
+
+      const packingNumber = (packing['levelA'] || 0) + (packing['levelB'] || 0) +(packing['levelC'] || 0) + (packing['levelD'] || 0)
+      console.log(total, packingNumber)
+      if(total - packingNumber < 0) {
+        throw new Error('库存不足！')
+      }
+
+      await CustomerRepository.save(customer)
+      await ChillRepository.update(ctx.request.body.chillId, { ...chill })
+
+      ctx.body = true
+    }
+  } catch (e) {
+    ctx.body = {
+      data: false,
+      message: e.message
+    }
   }
 
-  if (customer) {
-    const packingArr = await CustomerRepository.find({
-      join: {
-        alias: "customer",
-        leftJoinAndSelect: {
-          levels: "customer.packings",
-        }
-      },
-      where: { id: customer.id }
-    })
-    packing['storage'] = ctx.request.body.chillId
-    packing['truck'] = ctx.request.body.truck
-    const newPacking = PackingRepository.create([{ ...packing }])
-    customer.packings = packingArr[0].packings.concat(newPacking)
-    await CustomerRepository.save(customer)
-    await ChillRepository.update(ctx.request.body.chillId, { ...chill })
-
-    ctx.body = true
-  }
 
 }
 
