@@ -5,9 +5,15 @@ import { CustomerInfo } from "../entity/CustomerInfo"
 
 export async function getStockInfo(ctx: Context): Promise<void> {
   const CustomerRepository = getManager().getRepository(CustomerInfo)
+  const query = ctx.query
+  const filterName = `Customer.name Like '%${query.name || ''}%'`
+  const filterPlate = `AND Customer.plate Like '%${query.plate || ''}%'`
+  const filterTime = `stock.time Like '%${query.time || ''}%' AND stock.status = 1`
   const result = await CustomerRepository
     .createQueryBuilder('Customer')
-    .leftJoinAndSelect('Customer.stocks', 'stock')
+    .leftJoinAndSelect('Customer.stocks', 'stock', filterTime)
+    .where(filterName +(query.plate ? filterPlate : ''))
+    .andWhere('Customer.status = 1')
     .getMany()
 
   ctx.body = {
@@ -47,6 +53,12 @@ export async function setStockInfo(ctx: Context): Promise<void> {
   }
 }
 
+export async function deleteStockInfo(ctx: Context): Promise<void> {
+  const StockRepository = getManager().getRepository(StockInfo)
+  await StockRepository.update(ctx.query.id, { status: 0 })
+  ctx.body = true
+}
+
 export async function getCustomer(ctx: Context): Promise<void> {
   const CustomerRepository = getManager().getRepository(CustomerInfo)
   const result = await CustomerRepository.find()
@@ -54,3 +66,10 @@ export async function getCustomer(ctx: Context): Promise<void> {
     list : result
   }
 }
+
+export async function deleteCustomer(ctx: Context): Promise<void> {
+  const CustomerRepository = getManager().getRepository(CustomerInfo)
+  await CustomerRepository.update(ctx.query.id, { status: 0 })
+  ctx.body = true
+}
+

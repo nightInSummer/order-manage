@@ -17,6 +17,9 @@ export class CustomerInfo {
   @Column()
   plate: string
 
+  @Column({ default: 1 })
+  status: number
+
   // 建立一对多关系
   @OneToMany(type => StockInfo, StockInfo => StockInfo.customerInfo, {
     cascade: true

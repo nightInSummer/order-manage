@@ -13,6 +13,9 @@ export class MachiningInfo {
   @Column()
   number: number
 
+  @Column({ default: 1 })
+  status: number
+
   @Column('timestamp')
   time: Date
 

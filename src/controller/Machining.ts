@@ -4,14 +4,21 @@ import { MachiningInfo } from "../entity/MachiningInfo"
 import { CustomerInfo } from "../entity/CustomerInfo"
 
 import * as _ from 'lodash'
+import {StockInfo} from "../entity/StockInfo"
 
 export async function getMachiningInfo(ctx: Context): Promise<void> {
   const CustomerRepository = getManager().getRepository(CustomerInfo)
+  const query = ctx.query
+  const filterName = `Customer.name Like '%${query.name || ''}%'`
+  const filterPlate = `AND Customer.plate Like '%${query.plate || ''}%'`
+  const filterTime = `machinings.time Like '%${query.time || ''}%' AND machinings.status = 1`
   const result = await CustomerRepository
     .createQueryBuilder('Customer')
-    .leftJoinAndSelect('Customer.machinings', 'machinings')
+    .leftJoinAndSelect('Customer.machinings', 'machinings', filterTime)
     .leftJoinAndSelect('Customer.stocks', 'stocks')
     .leftJoinAndSelect('Customer.wastages', 'wastages','wastages.type = 0')
+    .where(filterName +(query.plate ? filterPlate : ''))
+    .andWhere('Customer.status = 1')
     .getMany()
 
   ctx.body = {
@@ -30,7 +37,8 @@ export async function setMachiningInfo(ctx: Context): Promise<void> {
         alias: "customer",
         leftJoinAndSelect: {
           machinings: "customer.machinings",
-          stocks: "customer.stocks"
+          stocks: "customer.stocks",
+          wastages: "customer.wastages"
         }
       },
       where: { id: customer.id }
@@ -42,21 +50,43 @@ export async function setMachiningInfo(ctx: Context): Promise<void> {
       return result + item.number
     }, 0)
 
-    const machining = _.reduce(ctx.request.body.machining,(result, item) => {
+    const machining = _.reduce(machiningArr[0].machinings,(result, item) => {
       return result + item.number
     }, 0)
 
-    if(total - machining < 0) {
+    const wastage = _.reduce(machiningArr[0].wastages,(result, item) => {
+      if(item.type == 0) {
+        return result + item.number
+      } else {
+        return result
+      }
+    }, 0)
+
+    const newNumber = _.reduce(ctx.request.body.machining,(result, item) => {
+      return result + item.number
+    }, 0)
+
+    const surplus = total - machining - wastage
+
+    if(surplus - newNumber < 0) {
       throw new Error('库存不足！')
     }
 
     await CustomerRepository.save(customer)
 
-    ctx.body = true
+    ctx.body = {
+      data: true
+    }
   } catch (e) {
     ctx.body = {
       data: false,
       message: e.message
     }
   }
+}
+
+export async function deleteMachiningInfo(ctx: Context): Promise<void> {
+  const MachiningRepository = getManager().getRepository(MachiningInfo)
+  await MachiningRepository.update(ctx.query.id, { status: 0 })
+  ctx.body = true
 }

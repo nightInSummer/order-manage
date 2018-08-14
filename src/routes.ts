@@ -21,6 +21,11 @@ export const AppRoutes = [
     action: Stock.setStockInfo
   },
   {
+    path: '/stock',
+    method: 'delete',
+    action: Stock.deleteStockInfo
+  },
+  {
     path: '/machining',
     method: 'get',
     action: Machining.getMachiningInfo
@@ -31,6 +36,11 @@ export const AppRoutes = [
     action: Machining.setMachiningInfo
   },
   {
+    path: '/machining',
+    method: 'delete',
+    action: Machining.deleteMachiningInfo
+  },
+  {
     path: '/level',
     method: 'get',
     action: Level.getLevelInfo
@@ -39,6 +49,11 @@ export const AppRoutes = [
     path: '/level',
     method: 'post',
     action: Level.setLevelInfo
+  },
+  {
+    path: '/level',
+    method: 'delete',
+    action: Level.deleteLevelInfo
   },
   {
     path: '/chill',
@@ -66,6 +81,11 @@ export const AppRoutes = [
     action: Stock.getCustomer
   },
   {
+    path: '/customer',
+    method: 'delete',
+    action: Stock.deleteCustomer
+  },
+  {
     path: '/packing',
     method: 'get',
     action: Packing.getPackingInfo
@@ -76,6 +96,11 @@ export const AppRoutes = [
     action: Packing.savePackingInfo
   },
   {
+    path: '/packing',
+    method: 'delete',
+    action: Packing.deletePackingInfo
+  },
+  {
     path: '/wastage',
     method: 'get',
     action: Wastage.getWastageInfo
@@ -84,5 +109,10 @@ export const AppRoutes = [
     path: '/wastage',
     method: 'post',
     action: Wastage.saveWastageInfo
+  },
+  {
+    path: '/wastage',
+    method: 'delete',
+    action: Wastage.deleteWastageInfo
   }
 ]

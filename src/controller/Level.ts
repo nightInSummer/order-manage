@@ -5,9 +5,15 @@ import { CustomerInfo } from "../entity/CustomerInfo"
 
 export async function getLevelInfo(ctx: Context): Promise<void> {
   const CustomerRepository = getManager().getRepository(CustomerInfo)
+  const query = ctx.query
+  const filterName = `Customer.name Like '%${query.name || ''}%'`
+  const filterPlate = `AND Customer.plate Like '%${query.plate || ''}%'`
+  const filterTime = `levels.time Like '%${query.time || ''}%' AND levels.status = 1`
   const result = await CustomerRepository
     .createQueryBuilder('Customer')
-    .leftJoinAndSelect('Customer.levels', 'levels')
+    .leftJoinAndSelect('Customer.levels', 'levels', filterTime)
+    .where(filterName +(query.plate ? filterPlate : ''))
+    .andWhere('Customer.status = 1')
     .getMany()
 
   ctx.body = {
@@ -60,6 +66,10 @@ export async function setLevelInfo(ctx: Context): Promise<void> {
     await CustomerRepository.save(newCustomer)
     ctx.body = true
   }
+}
 
-
+export async function deleteLevelInfo(ctx: Context): Promise<void> {
+  const LevelRepository = getManager().getRepository(LevelInfo)
+  await LevelRepository.update(ctx.query.id, { status: 0 })
+  ctx.body = true
 }

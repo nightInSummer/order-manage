@@ -3,12 +3,19 @@ import { getManager } from "typeorm"
 
 import { CustomerInfo } from "../entity/CustomerInfo"
 import { WastageInfo } from "../entity/WastageInfo"
+import * as _ from 'lodash'
 
 export async function getWastageInfo(ctx: Context): Promise<void> {
   const CustomerRepository = getManager().getRepository(CustomerInfo)
+  const query = ctx.query
+  const filterName = `Customer.name Like '%${query.name || ''}%'`
+  const filterPlate = `AND Customer.plate Like '%${query.plate || ''}%'`
+  const filterTime = `wastages.time Like '%${query.time || ''}%' AND wastages.status = 1`
   const result = await CustomerRepository
     .createQueryBuilder('Customer')
-    .leftJoinAndSelect('Customer.wastages', 'wastages')
+    .leftJoinAndSelect('Customer.wastages', 'wastages', filterTime)
+    .where(filterName +(query.plate ? filterPlate : ''))
+    .andWhere('Customer.status = 1')
     .getMany()
 
   ctx.body = {
@@ -21,19 +28,66 @@ export async function saveWastageInfo(ctx: Context): Promise<void> {
   const WastageRepository = getManager().getRepository(WastageInfo)
   const customer = await CustomerRepository.findOne(ctx.request.body.id)
 
-  const wastageArr = await CustomerRepository.find({
-    join: {
-      alias: "customer",
-      leftJoinAndSelect: {
-        wastages: "customer.wastages",
-      }
-    },
-    where: { id: customer.id }
-  })
-  const newWastage = WastageRepository.create([ctx.request.body.wastage])
-  customer.wastages = wastageArr[0].wastages.concat(newWastage)
-  await CustomerRepository.save(customer)
+  try {
+    const wastageArr = await CustomerRepository.find({
+      join: {
+        alias: "customer",
+        leftJoinAndSelect: {
+          wastages: "customer.wastages",
+          packings: "customer.packings",
+          levels: "customer.levels",
+          machinings: "customer.machinings",
+          stocks: "customer.stocks",
+        }
+      },
+      where: { id: customer.id }
+    })
 
-  ctx.body = true
+    let total, cost
 
+    if(ctx.request.body.wastage.type === 0) {
+      total = _.reduce(wastageArr[0].stocks,(result, item) => {
+        return result + item.number
+      }, 0)
+
+      cost =  _.reduce(wastageArr[0].machinings,(result, item) => {
+        return result + item.number
+      }, 0)
+    } else if(ctx.request.body.wastage.type === 1) {
+      total = _.reduce(wastageArr[0].levels,(result, item) => {
+        return result + item.levelA + item.levelB + item.levelC + item.levelD
+      }, 0)
+
+      cost = _.reduce(wastageArr[0].packings,(result, item) => {
+        return result + item.levelA + item.levelB + item.levelC + item.levelD
+      }, 0)
+    }
+
+    const newNumber = ctx.request.body.wastage.number
+    const surplus = total - cost
+
+    if(surplus - newNumber < 0) {
+      throw new Error('库存不足！')
+    }
+
+    const newWastage = WastageRepository.create([ctx.request.body.wastage])
+    customer.wastages = wastageArr[0].wastages.concat(newWastage)
+    await CustomerRepository.save(customer)
+
+    ctx.body = {
+      data: true
+    }
+  } catch (e) {
+    ctx.body = {
+      data: false,
+      message: e.message
+    }
+  }
 }
+
+export async function deleteWastageInfo(ctx: Context): Promise<void> {
+  const WastageRepository = getManager().getRepository(WastageInfo)
+  await WastageRepository.update(ctx.query.id, { status: 0 })
+  ctx.body = true
+}
+

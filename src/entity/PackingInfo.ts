@@ -25,6 +25,9 @@ export class PackingInfo {
   @Column()
   truck: number
 
+  @Column({ default: 1 })
+  status: number
+
   @Column('timestamp')
   time: Date
 
