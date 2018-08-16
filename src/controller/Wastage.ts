@@ -10,7 +10,7 @@ export async function getWastageInfo(ctx: Context): Promise<void> {
   const query = ctx.query
   const filterName = `Customer.name Like '%${query.name || ''}%'`
   const filterPlate = `AND Customer.plate Like '%${query.plate || ''}%'`
-  const filterTime = `wastages.time Like '%${query.time || ''}%' AND wastages.status = 1`
+  const filterTime = `wastages.time Like '%${query.time || ''}%'`
   const result = await CustomerRepository
     .createQueryBuilder('Customer')
     .leftJoinAndSelect('Customer.wastages', 'wastages', filterTime)
@@ -45,6 +45,8 @@ export async function saveWastageInfo(ctx: Context): Promise<void> {
 
     let total, cost
 
+    console.log(111, ctx.request.body)
+
     if(ctx.request.body.wastage.type === 0) {
       total = _.reduce(wastageArr[0].stocks,(result, item) => {
         return result + item.number
@@ -65,12 +67,15 @@ export async function saveWastageInfo(ctx: Context): Promise<void> {
 
     const newNumber = ctx.request.body.wastage.number
     const surplus = total - cost
+    console.log(surplus)
+    console.log(333, surplus - newNumber)
 
     if(surplus - newNumber < 0) {
       throw new Error('库存不足！')
     }
 
     const newWastage = WastageRepository.create([ctx.request.body.wastage])
+    console.log(222, newWastage)
     customer.wastages = wastageArr[0].wastages.concat(newWastage)
     await CustomerRepository.save(customer)
 
@@ -87,7 +92,7 @@ export async function saveWastageInfo(ctx: Context): Promise<void> {
 
 export async function deleteWastageInfo(ctx: Context): Promise<void> {
   const WastageRepository = getManager().getRepository(WastageInfo)
-  await WastageRepository.update(ctx.query.id, { status: 0 })
+  await WastageRepository.delete(ctx.query.id)
   ctx.body = true
 }
 

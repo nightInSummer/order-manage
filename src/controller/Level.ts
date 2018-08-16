@@ -8,7 +8,7 @@ export async function getLevelInfo(ctx: Context): Promise<void> {
   const query = ctx.query
   const filterName = `Customer.name Like '%${query.name || ''}%'`
   const filterPlate = `AND Customer.plate Like '%${query.plate || ''}%'`
-  const filterTime = `levels.time Like '%${query.time || ''}%' AND levels.status = 1`
+  const filterTime = `levels.time Like '%${query.time || ''}%'`
   const result = await CustomerRepository
     .createQueryBuilder('Customer')
     .leftJoinAndSelect('Customer.levels', 'levels', filterTime)
@@ -70,6 +70,6 @@ export async function setLevelInfo(ctx: Context): Promise<void> {
 
 export async function deleteLevelInfo(ctx: Context): Promise<void> {
   const LevelRepository = getManager().getRepository(LevelInfo)
-  await LevelRepository.update(ctx.query.id, { status: 0 })
+  await LevelRepository.delete(ctx.query.id)
   ctx.body = true
 }

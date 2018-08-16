@@ -4,14 +4,13 @@ import { MachiningInfo } from "../entity/MachiningInfo"
 import { CustomerInfo } from "../entity/CustomerInfo"
 
 import * as _ from 'lodash'
-import {StockInfo} from "../entity/StockInfo"
 
 export async function getMachiningInfo(ctx: Context): Promise<void> {
   const CustomerRepository = getManager().getRepository(CustomerInfo)
   const query = ctx.query
   const filterName = `Customer.name Like '%${query.name || ''}%'`
   const filterPlate = `AND Customer.plate Like '%${query.plate || ''}%'`
-  const filterTime = `machinings.time Like '%${query.time || ''}%' AND machinings.status = 1`
+  const filterTime = `machinings.time Like '%${query.time || ''}%'`
   const result = await CustomerRepository
     .createQueryBuilder('Customer')
     .leftJoinAndSelect('Customer.machinings', 'machinings', filterTime)
@@ -43,7 +42,9 @@ export async function setMachiningInfo(ctx: Context): Promise<void> {
       },
       where: { id: customer.id }
     })
-    const newMachining = MachiningRepository.create(ctx.request.body.machining)
+    const list: any = _.reject(ctx.request.body.machining, { number: '' })
+    console.log(111, list)
+    const newMachining = MachiningRepository.create(list)
     customer.machinings = machiningArr[0].machinings.concat(newMachining)
 
     const total = _.reduce(machiningArr[0].stocks,(result, item) => {
@@ -63,11 +64,10 @@ export async function setMachiningInfo(ctx: Context): Promise<void> {
     }, 0)
 
     const newNumber = _.reduce(ctx.request.body.machining,(result, item) => {
-      return result + item.number
+      return result + Number(item.number)
     }, 0)
 
     const surplus = total - machining - wastage
-
     if(surplus - newNumber < 0) {
       throw new Error('库存不足！')
     }
@@ -87,6 +87,6 @@ export async function setMachiningInfo(ctx: Context): Promise<void> {
 
 export async function deleteMachiningInfo(ctx: Context): Promise<void> {
   const MachiningRepository = getManager().getRepository(MachiningInfo)
-  await MachiningRepository.update(ctx.query.id, { status: 0 })
+  await MachiningRepository.delete(ctx.query.id)
   ctx.body = true
 }

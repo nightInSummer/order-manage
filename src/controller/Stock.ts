@@ -61,7 +61,7 @@ export async function deleteStockInfo(ctx: Context): Promise<void> {
 
 export async function getCustomer(ctx: Context): Promise<void> {
   const CustomerRepository = getManager().getRepository(CustomerInfo)
-  const result = await CustomerRepository.find()
+  const result = await CustomerRepository.find({ status: 1 })
   ctx.body = {
     list : result
   }

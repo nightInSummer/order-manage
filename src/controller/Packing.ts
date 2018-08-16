@@ -11,7 +11,7 @@ export async function getPackingInfo (ctx: Context): Promise<void> {
   const query = ctx.query
   const filterName = `Customer.name Like '%${query.name || ''}%'`
   const filterPlate = `AND Customer.plate Like '%${query.plate || ''}%'`
-  const filterTime = `packings.time Like '%${query.time || ''}%' AND packings.status = 1`
+  const filterTime = `packings.time Like '%${query.time || ''}%'`
   const result = await CustomerRepository
     .createQueryBuilder('Customer')
     .leftJoinAndSelect('Customer.packings', 'packings', filterTime)
@@ -114,7 +114,7 @@ export async function savePackingInfo (ctx: Context): Promise<void> {
 
 export async function deletePackingInfo(ctx: Context): Promise<void> {
   const PackingRepository = getManager().getRepository(PackingInfo)
-  await PackingRepository.update(ctx.query.id, { status: 0 })
+  await PackingRepository.delete(ctx.query.id)
   ctx.body = true
 }
 
