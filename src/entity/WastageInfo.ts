@@ -7,7 +7,7 @@ export class WastageInfo {
   @PrimaryGeneratedColumn()
   id: number
 
-  @Column()
+  @Column('float')
   number: number
 
   @Column()

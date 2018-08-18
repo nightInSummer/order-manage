@@ -43,7 +43,6 @@ export async function setMachiningInfo(ctx: Context): Promise<void> {
       where: { id: customer.id }
     })
     const list: any = _.reject(ctx.request.body.machining, { number: '' })
-    console.log(111, list)
     const newMachining = MachiningRepository.create(list)
     customer.machinings = machiningArr[0].machinings.concat(newMachining)
 

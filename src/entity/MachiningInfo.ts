@@ -10,7 +10,7 @@ export class MachiningInfo {
   @Column()
   type: number
 
-  @Column()
+  @Column('float')
   number: number
 
   @Column({ default: 1 })

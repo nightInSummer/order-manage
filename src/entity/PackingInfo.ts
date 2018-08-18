@@ -7,16 +7,16 @@ export class PackingInfo {
   @PrimaryGeneratedColumn()
   id: number
 
-  @Column({ default: 0 })
+  @Column('float', { default: 0 })
   levelA: number
 
-  @Column({ default: 0 })
+  @Column('float', { default: 0 })
   levelB: number
 
-  @Column({ default: 0 })
+  @Column('float', { default: 0 })
   levelC: number
 
-  @Column({ default: 0 })
+  @Column('float', { default: 0 })
   levelD: number
 
   @Column()

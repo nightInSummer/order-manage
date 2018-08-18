@@ -10,7 +10,7 @@ export class StockInfo {
   @Column()
   type: number
 
-  @Column()
+  @Column('float')
   number: number
 
   @Column({ default: 1 })

@@ -6,16 +6,16 @@ export class StorageInfo {
   @PrimaryGeneratedColumn()
   id: number
 
-  @Column()
+  @Column('float')
   levelA: number
 
-  @Column()
+  @Column('float')
   levelB: number
 
-  @Column()
+  @Column('float')
   levelC: number
 
-  @Column()
+  @Column('float')
   levelD: number
 
 
