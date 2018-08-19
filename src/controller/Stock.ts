@@ -27,7 +27,7 @@ export async function setStockInfo(ctx: Context): Promise<void> {
 
   const customer = await CustomerRepository.findOne({ name: ctx.request.body.name, plate: ctx.request.body.plate })
 
-  if (customer) {
+  if (customer && customer.status === 1) {
     const levelArr = await CustomerRepository.find({
       join: {
         alias: "customer",
