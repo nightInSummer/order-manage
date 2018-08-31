@@ -4,6 +4,7 @@ import { getManager } from "typeorm"
 import { CustomerInfo } from "../entity/CustomerInfo"
 import { WastageInfo } from "../entity/WastageInfo"
 import * as _ from 'lodash'
+import * as utils from '../common/utils'
 
 export async function getWastageInfo(ctx: Context): Promise<void> {
   const CustomerRepository = getManager().getRepository(CustomerInfo)
@@ -18,8 +19,15 @@ export async function getWastageInfo(ctx: Context): Promise<void> {
     .andWhere('Customer.status = 1')
     .getMany()
 
-  ctx.body = {
-    list: result
+  if(ctx.query.display) {
+    const url = utils.createXls(result, 'wastages')
+    ctx.body = {
+      list: url
+    }
+  } else {
+    ctx.body = {
+      list: result
+    }
   }
 }
 

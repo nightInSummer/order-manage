@@ -4,7 +4,7 @@ import { PackingInfo } from "../entity/PackingInfo"
 import {CustomerInfo} from "../entity/CustomerInfo"
 import {ChillInfo} from "../entity/ChillInfo"
 import * as _ from 'lodash'
-import {LevelInfo} from "../entity/LevelInfo"
+import * as utils from '../common/utils'
 
 export async function getPackingInfo (ctx: Context): Promise<void> {
   const CustomerRepository = getManager().getRepository(CustomerInfo)
@@ -21,8 +21,15 @@ export async function getPackingInfo (ctx: Context): Promise<void> {
     .andWhere('Customer.status = 1')
     .getMany()
 
-  ctx.body = {
-    list: result
+  if(ctx.query.display) {
+    const url = utils.createXls(result, 'packings')
+    ctx.body = {
+      list: url
+    }
+  } else {
+    ctx.body = {
+      list: result
+    }
   }
 }
 

@@ -2,6 +2,7 @@ import { Context } from 'koa'
 import { getManager } from "typeorm"
 import { StockInfo } from "../entity/StockInfo"
 import { CustomerInfo } from "../entity/CustomerInfo"
+import * as utils from '../common/utils'
 
 export async function getStockInfo(ctx: Context): Promise<void> {
   const CustomerRepository = getManager().getRepository(CustomerInfo)
@@ -16,8 +17,15 @@ export async function getStockInfo(ctx: Context): Promise<void> {
     .andWhere('Customer.status = 1')
     .getMany()
 
-  ctx.body = {
-    list: result
+  if(ctx.query.display) {
+    const url = utils.createXls(result, 'stocks')
+    ctx.body = {
+      list: url
+    }
+  } else {
+    ctx.body = {
+      list: result
+    }
   }
 }
 
@@ -25,9 +33,8 @@ export async function setStockInfo(ctx: Context): Promise<void> {
   const CustomerRepository = getManager().getRepository(CustomerInfo)
   const StockRepository = getManager().getRepository(StockInfo)
 
-  const customer = await CustomerRepository.findOne({ name: ctx.request.body.name, plate: ctx.request.body.plate })
-
-  if (customer && customer.status === 1) {
+  const customer = await CustomerRepository.findOne({ name: ctx.request.body.name, plate: ctx.request.body.plate, status: 1 })
+  if (customer) {
     const levelArr = await CustomerRepository.find({
       join: {
         alias: "customer",

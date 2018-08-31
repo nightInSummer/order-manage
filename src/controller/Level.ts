@@ -2,6 +2,7 @@ import {Context} from "koa"
 import { getManager } from "typeorm"
 import { LevelInfo } from "../entity/LevelInfo"
 import { CustomerInfo } from "../entity/CustomerInfo"
+import * as utils from '../common/utils'
 
 export async function getLevelInfo(ctx: Context): Promise<void> {
   const CustomerRepository = getManager().getRepository(CustomerInfo)
@@ -16,8 +17,15 @@ export async function getLevelInfo(ctx: Context): Promise<void> {
     .andWhere('Customer.status = 1')
     .getMany()
 
-  ctx.body = {
-    list: result
+  if(ctx.query.display) {
+    const url = utils.createXls(result, 'levels')
+    ctx.body = {
+      list: url
+    }
+  } else {
+    ctx.body = {
+      list: result
+    }
   }
 }
 

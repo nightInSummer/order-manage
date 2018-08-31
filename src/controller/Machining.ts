@@ -4,6 +4,7 @@ import { MachiningInfo } from "../entity/MachiningInfo"
 import { CustomerInfo } from "../entity/CustomerInfo"
 
 import * as _ from 'lodash'
+import * as utils from '../common/utils'
 
 export async function getMachiningInfo(ctx: Context): Promise<void> {
   const CustomerRepository = getManager().getRepository(CustomerInfo)
@@ -19,9 +20,15 @@ export async function getMachiningInfo(ctx: Context): Promise<void> {
     .where(filterName +(query.plate ? filterPlate : ''))
     .andWhere('Customer.status = 1')
     .getMany()
-
-  ctx.body = {
-    list: result
+  if(ctx.query.display) {
+    const url = utils.createXls(result, 'machinings')
+    ctx.body = {
+      list: url
+    }
+  } else {
+    ctx.body = {
+      list: result
+    }
   }
 }
 
